@@ -1,0 +1,1 @@
+val collision : Ball.t -> Brick.t -> bool
