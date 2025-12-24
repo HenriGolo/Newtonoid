@@ -1,4 +1,4 @@
-(* return true if collision occurs between ball and brick *)
+(* Return couple new ball state + if it collides with the brick*)
 let collision (ball:Ball.t) (brick:Brick.t) =
   (* we suppose 0,0 is bottom left *)
 
@@ -35,36 +35,38 @@ let collision (ball:Ball.t) (brick:Brick.t) =
   if (brick_left <= ball.x && brick_right >= ball.x) then
 
     (* vertical case collision *)
-    if brick_center_y <= ball.y then
-
-      ball_bottom <= brick_top  (* vertical top case collision *)
-
+    if (brick_center_y <= ball.y && ball_bottom <= brick_top) || (brick_center_y >= ball.y && ball_top >= brick_bottom) then
+      (Ball.bounce_y ball, true)
     else
-
-      ball_top >= brick_bottom  (* vertical bottom case collision *)
+      (ball, false)
 
   else if (brick_bottom <= ball.y && brick_top >= ball.y) then
-
+    
     (* horizontal case collision *)
-    if brick_center_x <= ball.x then
-
-      ball_left <= brick_right  (* horizontal right case collision *)
-
+    if (brick_center_x <= ball.x && ball_left <= brick_right) || (brick_center_x >= ball.x && ball_right >= brick_left) then
+      (Ball.bounce_x ball, true)
     else
+      (ball, false)
 
-      ball_right >= brick_left  (* horizontal left case collision *)
   else
 
     (* diagonal case collision *)
+    if
     dist_corner_top_left <= radius_squared ||
     dist_corner_top_right <= radius_squared ||
     dist_corner_bottom_left <= radius_squared ||
-    dist_corner_bottom_right <= radius_squared 
+    dist_corner_bottom_right <= radius_squared then
+      (Ball.bounce_corner ball, true)
+    else
+      (ball, false)
 
 ;;
 
-(* Unit tests for collision detection *)
+let ball_paddle (ball : Ball.t) (paddle : Paddle.t) =
+  collision ball (Brick.create ~x:paddle.x ~y:paddle.y ~width:paddle.width ~height:paddle.height)
 
+(* Unit tests for collision detection (pas à jour, peut etre faire un fichier test.ml pour mettre les tests) *)
+(*
 let brick = Brick.create ~x:0. ~y:0. ~width:20. ~height:20.
 let ball_far = Ball.create ~x:100. ~y:100. ~radius:5. ~vx:0. ~vy:0.
 let %test _ = collision ball_far brick = false
@@ -89,3 +91,4 @@ let %test _ = collision ball_corner_touch brick_h = true
 
 let ball_corner_far = Ball.create ~x:(-10.) ~y:(-10.) ~radius:5. ~vx:0. ~vy:0.
 let %test _ = collision ball_corner_far brick_h = false
+*)
