@@ -78,22 +78,21 @@ let handle_collisions ball paddle bricks =
 
   (* Bricks : à modifier comme donnée dans le sujet pour pas check la collision avec toutes les briques *)
   let old_count = List.length bricks in
-  let new_bricks, ball = List.fold_left (fun (acc_bricks, b) brick ->
+  let new_bricks, ball, points_gagnes = List.fold_left (fun (acc_bricks, b, pts) brick ->
         let (new_ball, has_hit) = Collision.collision b brick in
         if has_hit then 
-          (acc_bricks, new_ball)
+          (acc_bricks, new_ball, pts + brick.Brick.value)
         else 
-          (brick :: acc_bricks, b) (* On garde la brique que si elle n'a pas été touchée *)
-      ) ([], ball) bricks
+          (brick :: acc_bricks, b, pts)
+      ) ([], ball, 0) bricks
   in
-  let nb_bricks_left = List.length new_bricks in
-  let nb_bricks_hit = old_count - nb_bricks_left in
-  let hit_brick = old_count > nb_bricks_left in
+ 
+  let hit_brick = points_gagnes > 0 in
   let ball = if hit_brick || hit_vertical_wall || hit_horizontal_wall || hit_paddle then
       Ball.cap_speed(Ball.accelerate Config.bounce_accel ball) Config.max_speed
     else ball
   in
-  (ball, new_bricks, nb_bricks_hit)
+  (ball, new_bricks, points_gagnes)
 
 (* Met à jour l'état du système *)
 let update_state (mouse_x, click) state =
@@ -120,7 +119,7 @@ let update_state (mouse_x, click) state =
   in
   let ball, bricks, hits = handle_collisions ball paddle state.bricks in
   let ball_final = Ball.cap_speed ball Config.max_speed in
-  let new_score = state.score + (hits * 10) in (* 10 points par brique *)
+  let new_score = state.score + hits in
   if ball.y < Box.infy then
     { initial_state with score = new_score } (* on reset le niveau si on tombe, on garde le mm score, à adapter*)
   else
