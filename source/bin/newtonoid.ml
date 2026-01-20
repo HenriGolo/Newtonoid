@@ -22,6 +22,7 @@ type state = {
   paddle : Paddle.t;
   bricks : Brick.t list;
   running : bool; (* Si le jeu est lancé *)
+  score : int;
 }
 
 let initial_state =
@@ -30,6 +31,7 @@ let initial_state =
     paddle = Config.paddle;
     bricks = Level.create_level ();
     running = false;
+    score = 0;
   }
 
 (* Fonction integre vue dans le tp7 *)
@@ -70,6 +72,7 @@ let handle_collisions ball paddle bricks =
   let (ball, _hit_paddle) = Collision.ball_paddle ball paddle in
 
   (* Bricks : à modifier comme donnée dans le sujet pour pas check la collision avec toutes les briques *)
+  let old_count = List.length bricks in
   let new_bricks, ball = List.fold_left (fun (acc_bricks, b) brick ->
         let (new_ball, has_hit) = Collision.collision b brick in
         if has_hit then 
@@ -78,7 +81,8 @@ let handle_collisions ball paddle bricks =
           (brick :: acc_bricks, b) (* On garde la brique que si elle n'a pas été touchée *)
       ) ([], ball) bricks
   in
-  (ball, new_bricks)
+  let nb_bricks_hit = old_count - List.length new_bricks in
+  (ball, new_bricks, nb_bricks_hit)
 
 (* Met à jour l'état du système *)
 let update_state (mouse_x, click) state =
@@ -100,17 +104,22 @@ let update_state (mouse_x, click) state =
       
       Ball.move ball_nxt dt 
   in
-  let ball, bricks = handle_collisions ball paddle state.bricks in
+  let ball, bricks, hits = handle_collisions ball paddle state.bricks in
+  let new_score = state.score + (hits * 10) in (* 10 points par brique *)
   if ball.y < Box.infy then
-      initial_state 
+    { initial_state with score = new_score } (* on reset le niveau si on tombe, on garde le mm score, à adapter*)
   else
-  { state with ball; paddle; bricks; running }
+  { state with ball; paddle; bricks; running; score = new_score }
 
 (* Dessine l'état du jeu *)  
 let draw_state etat =
   Paddle.draw etat.paddle;
   Ball.draw etat.ball;
-  List.iter Brick.draw etat.bricks
+  List.iter Brick.draw etat.bricks;
+  (* mettre à jour avec des variables globales*)
+  Graphics.set_color Graphics.black;
+  Graphics.moveto 20 570;
+  Graphics.draw_string (Printf.sprintf "Score: %d" etat.score)
 
 (* Produit le flux des états successifs du jeu *)
 let game_flux initial_s =
@@ -124,7 +133,7 @@ let game_flux initial_s =
     (initial_s, Input.mouse)
 
 (* extrait le score courant d'un etat : *)
-let score etat : int = 0 (* A completer plus tard *)
+let score etat : int = etat.score
 
 let graphic_format =
   Format.sprintf
