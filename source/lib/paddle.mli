@@ -3,6 +3,7 @@ type t = {
   y : float;
   width : float;
   height : float;
+  vx : float;
   (*ajouter dx plus tard pour la cumulation des vitesses*)
 }
 

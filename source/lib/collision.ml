@@ -63,7 +63,13 @@ let collision (ball:Ball.t) (brick:Brick.t) =
 ;;
 
 let ball_paddle (ball : Ball.t) (paddle : Paddle.t) =
-  collision ball (Brick.create ~x:paddle.x ~y:paddle.y ~width:paddle.width ~height:paddle.height)
+  let (new_ball, hit) = collision ball (Brick.create ~x:paddle.x ~y:paddle.y ~width:paddle.width ~height:paddle.height) in
+  if hit then
+    (* On ajoute un coeff de réduction de la vitesse de la raquette *)
+    let updated_vx = new_ball.vx +. (paddle.vx *. Config.coeff_velocity) in
+    ({ new_ball with vx = updated_vx }, true)
+  else
+    (new_ball, false)
 
 (* Unit tests for collision detection (pas à jour, peut etre faire un fichier test.ml pour mettre les tests) *)
 (*

@@ -3,9 +3,10 @@ type t = {
   y : float;
   width : float;
   height : float;
+  vx : float;
 }
 
-let create ~x ~y ~width ~height = { x; y; width; height }
+let create ~x ~y ~width ~height = { x; y; width; height; vx = 0. }
 
 let draw (paddle : t) =
   Graphics.fill_rect

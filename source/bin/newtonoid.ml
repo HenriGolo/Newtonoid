@@ -57,19 +57,24 @@ let balle_mouvement (balle : Ball.t) =
 
 (* Gère les collisions entre la balle, la raquette et les briques *)
 let handle_collisions ball paddle bricks =
+  let hit_horizontal_wall = 
+    ball.Ball.x < Box.infx +. ball.radius || ball.x > Box.supx -. ball.radius in
+  let hit_vertical_wall = 
+    ball.y +. ball.radius > Box.supy in
+
   (* Walls *)
   let ball =
-    if ball.Ball.x < Box.infx +. ball.radius || ball.x > Box.supx -. ball.radius
+    if hit_horizontal_wall
     then Ball.bounce_x ball else ball
   in
   let ball =
-    if ball.y > Box.supy -. ball.radius 
+    if hit_vertical_wall
     then Ball.bounce_y ball else ball
     (* si < y à gérer *)
   in
 
   (* Paddle *)
-  let (ball, _hit_paddle) = Collision.ball_paddle ball paddle in
+  let (ball, hit_paddle) = Collision.ball_paddle ball paddle in
 
   (* Bricks : à modifier comme donnée dans le sujet pour pas check la collision avec toutes les briques *)
   let old_count = List.length bricks in
@@ -81,13 +86,22 @@ let handle_collisions ball paddle bricks =
           (brick :: acc_bricks, b) (* On garde la brique que si elle n'a pas été touchée *)
       ) ([], ball) bricks
   in
-  let nb_bricks_hit = old_count - List.length new_bricks in
+  let nb_bricks_left = List.length new_bricks in
+  let nb_bricks_hit = old_count - nb_bricks_left in
+  let hit_brick = old_count > nb_bricks_left in
+  let ball = if hit_brick || hit_vertical_wall || hit_horizontal_wall || hit_paddle then
+      Ball.cap_speed(Ball.accelerate Config.bounce_accel ball) Config.max_speed
+    else ball
+  in
   (ball, new_bricks, nb_bricks_hit)
 
 (* Met à jour l'état du système *)
 let update_state (mouse_x, click) state =
   let dt = Init.dt in
-  let paddle = { state.paddle with x = mouse_x -. state.paddle.width /. 2. } in
+  let new_x = mouse_x -. state.paddle.width /. 2. in
+  (* Calcul de la vitesse de la raquette *)
+  let paddle_vx = (new_x -. state.paddle.x) /. dt in
+  let paddle = { state.paddle with x = new_x; vx = paddle_vx } in
   let running = state.running || click in
   
   let ball =
@@ -105,11 +119,12 @@ let update_state (mouse_x, click) state =
       Ball.move ball_nxt dt 
   in
   let ball, bricks, hits = handle_collisions ball paddle state.bricks in
+  let ball_final = Ball.cap_speed ball Config.max_speed in
   let new_score = state.score + (hits * 10) in (* 10 points par brique *)
   if ball.y < Box.infy then
     { initial_state with score = new_score } (* on reset le niveau si on tombe, on garde le mm score, à adapter*)
   else
-  { state with ball; paddle; bricks; running; score = new_score }
+  { state with ball = ball_final; paddle; bricks; running; score = new_score }
 
 (* Dessine l'état du jeu *)  
 let draw_state etat =

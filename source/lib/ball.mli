@@ -19,3 +19,9 @@ val bounce_corner : t -> t
 
 (** Draw the ball on the screen **)
 val draw : t -> unit
+
+(** Cap the speed of the ball to a maximum value **)
+val cap_speed : t -> float -> t
+
+(** Accelerate the ball by a given factor **)
+val accelerate : float -> t -> t
