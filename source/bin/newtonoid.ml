@@ -23,6 +23,7 @@ type state = {
   bricks : Brick.t list;
   running : bool; (* Si le jeu est lancé *)
   score : int;
+  lives : int;
 }
 
 let initial_state =
@@ -32,6 +33,7 @@ let initial_state =
     bricks = Level.create_level ();
     running = false;
     score = 0;
+    lives = 3;
   }
 
 (* Fonction integre vue dans le tp7 *)
@@ -121,7 +123,12 @@ let update_state (mouse_x, click) state =
   let ball_final = Ball.cap_speed ball Config.max_speed in
   let new_score = state.score + hits in
   if ball.y < Box.infy then
-    { initial_state with score = new_score } (* on reset le niveau si on tombe, on garde le mm score, à adapter*)
+    (* reset avec une vie en moins *)
+    { state with 
+        lives = state.lives - 1; 
+        running = false;
+        ball = Config.ball;
+    }
   else
   { state with ball = ball_final; paddle; bricks; running; score = new_score }
 
@@ -133,7 +140,7 @@ let draw_state etat =
   (* mettre à jour avec des variables globales*)
   Graphics.set_color Graphics.black;
   Graphics.moveto 20 570;
-  Graphics.draw_string (Printf.sprintf "Score: %d" etat.score)
+  Graphics.draw_string (Printf.sprintf "Score: %d | Vies: %d" etat.score etat.lives)
 
 (* Produit le flux des états successifs du jeu *)
 let game_flux initial_s =
@@ -160,13 +167,20 @@ let draw flux_etat =
     match Flux.(uncons flux_etat) with
     | None -> last_score
     | Some (etat, flux_etat') ->
-      Graphics.clear_graph ();
-      (* DESSIN ETAT *)
-      draw_state etat;
-      (* FIN DESSIN ETAT *)
-      Graphics.synchronize ();
-      Unix.sleepf Init.dt;
-      loop flux_etat' (last_score + score etat)
+      if etat.lives <= 0 then begin
+        Graphics.clear_graph ();
+        Graphics.moveto (int_of_float (Box.supx /. 2.)) (int_of_float (Box.supy /. 2.));
+        Graphics.draw_string "GAME OVER";
+        Graphics.synchronize ();
+        Unix.sleepf 2.0;
+        last_score
+      end else begin
+        Graphics.clear_graph ();
+        draw_state etat;
+        Graphics.synchronize ();
+        Unix.sleepf Init.dt;
+        loop flux_etat' (score etat)
+      end
     | _ -> assert false
   in
   Graphics.open_graph graphic_format;
