@@ -1,5 +1,11 @@
-(*example of level*)
+
+(* CONTRAT
+   Function that manages the level generation.
+   Type : unit -> Brick.t List
+   Return : a list of the bricks that compose the level
+*)
 let create_level () =
+  (*example of level*)
   let rows = 4 in
   let cols = 9 in
   let brick_w = 80. in
