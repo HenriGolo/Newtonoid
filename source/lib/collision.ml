@@ -43,7 +43,7 @@ let collision (ball:Ball.t) (brick:Brick.t) =
   if (brick_left <= ball.x && brick_right >= ball.x) then
 
     (* vertical case collision *)
-    if (brick_center_y <= ball.y && ball_bottom <= brick_top) || (brick_center_y >= ball.y && ball_top >= brick_bottom) then
+    if (brick_center_y <= ball.y && ball_bottom <= brick_top && ball.vy < 0.) || (brick_center_y >= ball.y && ball_top >= brick_bottom && ball.vy > 0.) then
       (Ball.bounce_y ball, true)
     else
       (ball, false)

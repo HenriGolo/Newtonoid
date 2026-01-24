@@ -1,4 +1,3 @@
-
 (* CONTRAT
    Function that manages the level generation.
    Type : unit -> Brick.t List
@@ -11,20 +10,21 @@ let create_level () =
   let brick_w = 80. in
   let brick_h = 20. in
   let offset_x = 40. in
-  let offset_y = 400. in
+  let offset_y = 260. in
 
-  List.concat (
+  let bricks_list =List.concat (
     List.init rows (fun r ->
       List.init cols (fun c ->
         Brick.create
           ~x:(offset_x +. float c *. brick_w)
-          ~y:(offset_y +. float r *. brick_h)
+          ~y:(offset_y +. 2. *. float r *. brick_h)
           ~width:brick_w
           ~height:brick_h
           ~value:((r+1) * 5)
           )
       )
     )
-
-
-  
+  in
+  let world_borders = Quadtree.create_borders ~x:0. ~y:0. ~width:Config.screen_w ~height:Config.screen_h in
+  let empty_tree = Quadtree.create world_borders in
+  List.fold_left Quadtree.insert empty_tree bricks_list

@@ -20,7 +20,7 @@ end
 type state = {
   ball : Ball.t;
   paddle : Paddle.t;
-  bricks : Brick.t list;
+  bricks : Quadtree.t;
   running : bool; (* Si le jeu est lancé *)
   score : int;
   lives : int;
@@ -101,24 +101,41 @@ let handle_collisions ball paddle bricks =
   (* Paddle *)
   let (ball, hit_paddle) = Collision.ball_paddle ball paddle in
 
-  (* Bricks : à modifier comme donnée dans le sujet pour pas check la collision avec toutes les briques *)
-  let old_count = List.length bricks in
-  let new_bricks, ball, points_gagnes = List.fold_left (fun (acc_bricks, b, pts) brick ->
-        let (new_ball, has_hit) = Collision.collision b brick in
-        if has_hit then 
-          (acc_bricks, new_ball, pts + brick.Brick.value)
-        else 
-          (brick :: acc_bricks, b, pts)
-      ) ([], ball, 0) bricks
+  let area = (*Quadtree.create_borders
+      ~x:(ball.x -. ball.radius)
+      ~y:(ball.y -. ball.radius)
+      ~width:(2. *. ball.radius)
+      ~height:(2. *. ball.radius) in *) 
+      (* pour début, normalement avec ces params c'est censé marcher comme si on avait pas de quadtree*)
+      Quadtree.create_borders 
+      ~x:(0.)
+      ~y:(0.)
+      ~width:(Config.screen_w)
+      ~height:(Config.screen_h) in
+  let nearby_bricks = Quadtree.query bricks area in
+  
+  let (ball_after_bricks, points_gagnes, hit_brick_obj) = 
+  List.fold_left (fun (b, pts, hit_obj) brick ->
+    (* Si on a déjà touché une brique (hit_obj <> None), on ne traite plus les collisions *)
+    if hit_obj <> None then (b, pts, hit_obj)
+    else
+      let (new_ball, has_hit) = Collision.collision b brick in
+      if has_hit then (new_ball, pts + brick.value, Some brick)
+      else (b, pts, hit_obj)
+  ) (ball, 0, None) nearby_bricks
+  in
+
+  let new_tree = match hit_brick_obj with
+    | None -> bricks
+    | Some b -> Quadtree.remove bricks b
   in
  
   let hit_brick = points_gagnes > 0 in
-  let ball = if hit_brick || hit_vertical_wall || hit_horizontal_wall || hit_paddle then
-      Ball.cap_speed(Ball.accelerate Config.bounce_accel ball) Config.max_speed
-    else ball
+  let ball_final = if hit_brick || hit_vertical_wall || hit_horizontal_wall || hit_paddle then
+      Ball.cap_speed(Ball.accelerate Config.bounce_accel ball_after_bricks) Config.max_speed
+    else ball_after_bricks
   in
-  (ball, new_bricks, points_gagnes)
-
+  (ball_final, new_tree, points_gagnes)
 (* CONTRAT
     Updates the entire game state for a single frame based on user input and physics.
     Type : (float * bool) -> state -> state
@@ -170,7 +187,7 @@ let update_state (mouse_x, click) state =
 let draw_state etat =
   Paddle.draw etat.paddle;
   Ball.draw etat.ball;
-  List.iter Brick.draw etat.bricks;
+  Quadtree.draw_tree etat.bricks;  
   (* mettre à jour avec des variables globales*)
   Graphics.set_color Graphics.black;
   Graphics.moveto 20 570;
