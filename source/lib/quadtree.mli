@@ -39,3 +39,6 @@ val query : t -> borders -> Brick.t list
 val draw_tree : t -> unit
 
 val remove : t -> Brick.t -> t
+
+(* Compte le nombre de briques dans l'arbre *)
+val count_bricks : t -> int

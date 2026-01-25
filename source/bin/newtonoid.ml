@@ -183,7 +183,15 @@ let update_state (mouse_x, click) state =
         ball = Config.ball;
     }
   else
-  { state with ball = ball_final; paddle; bricks; running; score = new_score }
+    if Quadtree.count_bricks bricks = 0 then
+      (* niveau terminé, reset avec niveau regeneré *)
+      { state with 
+          bricks = Level.create_level ();
+          ball = Config.ball;
+          running = false;
+      }
+    else
+    { state with ball = ball_final; paddle; bricks; running; score = new_score }
 
 (* CONTRAT
     Renders the current game state to the graphical window.

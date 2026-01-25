@@ -127,3 +127,13 @@ let rec remove (qt: t) (brick: Brick.t) : t =
            sw' = Nil (get_borders n.sw) && se' = Nil (get_borders n.se) 
         then Nil n.bounds
         else Node { n with nw = nw'; ne = ne'; sw = sw'; se = se' }
+
+
+let count_bricks (qt: t) : int =
+  let rec aux = function
+    | Nil _ -> 0
+    | Leaf (_, bricks) -> List.length bricks
+    | Node n ->
+        aux n.nw + aux n.ne + aux n.sw + aux n.se
+  in
+  aux qt
