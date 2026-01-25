@@ -4,10 +4,23 @@ type t = {
   width : float;
   height : float;
   vx : float;
-  (*ajouter dx plus tard pour la cumulation des vitesses*)
 }
 
-(** Creation of a paddle **)
+(* CONTRACT
+   Function that creates a new paddle instance.
+   Type: x:float -> y:float -> width:float -> height:float -> t
+   Parameter: x (float), the horizontal coordinate of the bottom-left corner
+   Parameter: y (float), the vertical coordinate of the bottom-left corner
+   Parameter: width (float), the width of the paddle
+   Parameter: height (float), the height of the paddle
+   Result: an instance of type t initialized with the given dimensions and a velocity (vx) of 0.
+*)
 val create : x:float -> y:float -> width:float -> height:float -> t
-(** Draw the paddle on the screen **)
+
+(* CONTRACT
+   Function that renders the paddle on the screen.
+   Type: t -> unit
+   Parameter: paddle (t), the paddle object containing position and dimensions
+   Result: (unit), draws a filled rectangle representing the paddle.
+*)
 val draw : t -> unit
