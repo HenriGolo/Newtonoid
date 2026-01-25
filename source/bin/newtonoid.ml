@@ -148,7 +148,14 @@ let update_state (mouse_x, click) state =
   let new_x = mouse_x -. state.paddle.width /. 2. in
   (* Calcul de la vitesse de la raquette *)
   let paddle_vx = (new_x -. state.paddle.x) /. dt in
-  let paddle = { state.paddle with x = new_x; vx = paddle_vx } in
+  let paddle =
+     if new_x < Box.infx then
+       { state.paddle with x = Box.infx; vx = 0. }
+     else if new_x +. state.paddle.width > Box.supx then
+       { state.paddle with x = Box.supx -. state.paddle.width; vx = 0. }
+     else
+       { state.paddle with x = new_x; vx = paddle_vx }
+  in
   let running = state.running || click in
   
   let ball =
