@@ -108,39 +108,20 @@ let handle_collisions ball paddle bricks =
   in
 
   let area = 
-    (*let margin = 5. in (* Marge de sécurité pour détecter la brique juste avant l'impact *)
-    let look_ahead = 10. in (* Distance supplémentaire dans la direction du mouvement *)
-    
-    (* On définit les bords de base autour de la balle *)
-    let x_min = ref (ball.x -. ball.radius -. margin) in
-    let y_min = ref (ball.y -. ball.radius -. margin) in
-    let width = ref (2. *. ball.radius +. 2. *. margin) in
-    let height = ref (2. *. ball.radius +. 2. *. margin) in
+    let dt = Init.dt in
+    (* Distance que la balle va parcourir d'ici la prochaine frame *)
+    let dx = ball.vx *. dt in
+    let dy = ball.vy *. dt in
 
-    (* On étend la zone de recherche selon la direction de la balle *)
-    if ball.vx > 0. then width := !width +. look_ahead
-    else x_min := !x_min -. look_ahead;
+    let x_min = min (ball.x -. ball.radius) (ball.x -. ball.radius +. dx) in
+    let y_min = min (ball.y -. ball.radius) (ball.y -. ball.radius +. dy) in
 
-    if ball.vy > 0. then height := !height +. look_ahead
-    else y_min := !y_min -. look_ahead;
+    let width = (2. *. ball.radius) +. abs_float dx in
+    let height = (2. *. ball.radius) +. abs_float dy in
 
-    Quadtree.create_borders 
-      ~x:!x_min 
-      ~y:!y_min 
-      ~width:!width 
-      ~height:!height
-  in*)
-        (*Quadtree.create_borders
-      ~x:(ball.x -. ball.radius)
-      ~y:(ball.y -. ball.radius)
-      ~width:(2. *. ball.radius)
-      ~height:(2. *. ball.radius) in *)
-      (* pour début, normalement avec ces params c'est censé marcher comme si on avait pas de quadtree*)
-      Quadtree.create_borders 
-      ~x:(0.)
-      ~y:(0.)
-      ~width:(Config.screen_w)
-      ~height:(Config.screen_h) in 
+    Quadtree.create_borders ~x:x_min ~y:y_min ~width ~height
+  in
+
   let nearby_bricks = Quadtree.query bricks area in
   
   let (ball_after_bricks, points_gagnes, hit_brick_obj) = 

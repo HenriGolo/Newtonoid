@@ -27,8 +27,10 @@ let create (b: borders) : t =
 
 (* Verifie que la brique brick est dans les bords b *)
 let contains (b: borders) (brick : Brick.t) : bool =
-  brick.x >= b.x && brick.x <= b.x +. b.width &&
-  brick.y >= b.y && brick.y <= b.y +. b.height
+  let mid_x = brick.x +. (brick.width /. 2.) in
+  let mid_y = brick.y +. (brick.height /. 2.) in
+  mid_x >= b.x && mid_x < b.x +. b.width &&
+  mid_y >= b.y && mid_y < b.y +. b.height
 
 let split (b: borders) : borders * borders * borders * borders =
   let half_width = b.width /. 2. in
