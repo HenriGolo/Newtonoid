@@ -8,67 +8,35 @@
               - collision_detected is a Boolean value that is true if contact has occurred.
 *)
 let collision (ball:Ball.t) (brick:Brick.t) =
-  (* we suppose 0,0 is bottom left *)
-
-  (* position of nearest points on the ball's bounding box *)
   let ball_left = ball.x -. ball.radius in
   let ball_right = ball.x +. ball.radius in
   let ball_top = ball.y +. ball.radius in
   let ball_bottom = ball.y -. ball.radius in
 
-  (* position of the brick's sides *)
   let brick_left = brick.x in
   let brick_right = brick.x +. brick.width in
   let brick_bottom = brick.y in
   let brick_top = brick.y +. brick.height in
-  let brick_center_x = brick.x +. (brick.width /. 2.) in
-  let brick_center_y = brick.y +. (brick.height /. 2.) in
 
-  (* value of ball's radius squared *)
-  let radius_squared = ball.radius *. ball.radius in
-  
-  (* compute distance squared between two points *)
-  let corner_dist_squared (x1, y1) (x2, y2) =
-      let dx = x1 -. x2 in
-      let dy = y1 -. y2 in
-      dx *. dx +. dy *. dy
+  (* intersection ? *)
+  let intersect = 
+    ball_right >= brick_left && ball_left <= brick_right &&
+    ball_top >= brick_bottom && ball_bottom <= brick_top 
   in
 
-  (* compute distance squared between ball center and each corner of the brick *)
-  let dist_corner_top_left = corner_dist_squared (ball.x, ball.y) (brick_left, brick_top) in
-  let dist_corner_top_right = corner_dist_squared (ball.x, ball.y) (brick_right, brick_top) in
-  let dist_corner_bottom_left = corner_dist_squared (ball.x, ball.y) (brick_left, brick_bottom) in
-  let dist_corner_bottom_right = corner_dist_squared (ball.x, ball.y) (brick_right, brick_bottom) in
-
-  if (brick_left <= ball.x && brick_right >= ball.x) then
-
-    (* vertical case collision *)
-    if (brick_center_y <= ball.y && ball_bottom <= brick_top && ball.vy < 0.) || (brick_center_y >= ball.y && ball_top >= brick_bottom && ball.vy > 0.) then
-      (Ball.bounce_y ball, true)
-    else
-      (ball, false)
-
-  else if (brick_bottom <= ball.y && brick_top >= ball.y) then
+  if not intersect then (ball, false)
+  else
+    (* determination du coté choqué *)
     
-    (* horizontal case collision *)
-    if (brick_center_x <= ball.x && ball_left <= brick_right) || (brick_center_x >= ball.x && ball_right >= brick_left) then
+    if ball.x >= brick_left && ball.x <= brick_right then
+      (* Choc Vertical *)
+      (Ball.bounce_y ball, true)
+    else if ball.y >= brick_bottom && ball.y <= brick_top then
+      (* Choc Horizontal *)
       (Ball.bounce_x ball, true)
     else
-      (ball, false)
-
-  else
-
-    (* diagonal case collision *)
-    if
-    dist_corner_top_left <= radius_squared ||
-    dist_corner_top_right <= radius_squared ||
-    dist_corner_bottom_left <= radius_squared ||
-    dist_corner_bottom_right <= radius_squared then
+      (* Choc sur un coin *)
       (Ball.bounce_corner ball, true)
-    else
-      (ball, false)
-
-;;
 
 let ball_paddle (ball : Ball.t) (paddle : Paddle.t) =
   let (new_ball, hit) = collision ball (Brick.create ~x:paddle.x ~y:paddle.y ~width:paddle.width ~height:paddle.height ~value:0) in
