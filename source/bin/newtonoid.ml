@@ -2,9 +2,6 @@
 open Libnewtonoid
 open Iterator
 
-(* exemple d'ouvertue d'un tel module de la bibliotheque : *)
-open Game
-
 module Init = struct
   let dt = 1. /. 60. (* 60 Hz *)
 end
@@ -268,7 +265,6 @@ let draw flux_etat =
         Unix.sleepf Init.dt;
         loop flux_etat' (score etat)
       end
-    | _ -> assert false
   in
   Graphics.open_graph graphic_format;
   Graphics.auto_synchronize false;
