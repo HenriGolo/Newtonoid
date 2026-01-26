@@ -18,9 +18,6 @@ type t =
       bounds : borders;
     }
 
-(** Maximum number of bricks a leaf can contain before splitting. *)
-val max_in_leaf : int
-
 (** CONTRACT
     Creates a border record defining a rectangular zone.
     Type: x:float -> y:float -> width:float -> height:float -> borders
