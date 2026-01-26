@@ -6,3 +6,4 @@ let paddle = Paddle.create ~x:350. ~y:80. ~width:100. ~height:15.
 let max_speed = 600.
 let coeff_velocity = 0.5 (* reduction de la vitesse transmise par le paddle*)
 let bounce_accel = 1.02 (* acceleration appliquée à chaque rebond *)
+let max_in_leaf = 4 (* maximum number of bricks inside of a quadtree leaf *)

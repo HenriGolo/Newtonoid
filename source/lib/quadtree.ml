@@ -17,8 +17,6 @@ type t =
       bounds : borders;
     }
 
-let max_in_leaf = 4
-
 let create_borders ~x ~y ~width ~height : borders =
   { x; y; width; height }
 
@@ -53,7 +51,7 @@ let rec insert (qt: t) (brick: Brick.t) : t =
     match qt with
     | Nil b -> Leaf (b, [brick])
     | Leaf (b, bricks) -> 
-        if List.length bricks < max_in_leaf then
+        if List.length bricks < Config.max_in_leaf then
           Leaf (b, brick :: bricks)
         else
           (* on transforme la feuille en un noeud et on répartit les briques *)
