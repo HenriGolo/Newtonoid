@@ -2,9 +2,12 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-tarname="rendu.tar"
+new_name="Duman_Crosnier_Rousseau_Fontaine"
+tarname="$new_name.tar"
 
 cd source
 dune clean
 cd ..
-tar -cvzf "${tarname}" source/*
+cp -r source "$new_name"
+tar -cvzf "$tarname" "$new_name"/*
+rm -fr "$new_name"
