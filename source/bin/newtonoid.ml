@@ -143,6 +143,7 @@ let handle_collisions ball paddle bricks =
     else ball_after_bricks
   in
   (ball_final, new_tree, points_gagnes)
+
 (* CONTRAT
     Updates the entire game state for a single frame based on user input and physics.
     Type : (float * bool) -> state -> state
